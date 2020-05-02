@@ -1,0 +1,43 @@
+﻿version: '3'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      - DOTNET_SKIP_FIRST_TIME_EXPERIENCE='true'
+      - DOTNET_CLI_TELEMETRY_OPTOUT='true'
+      - ASPNETCORE_ENVIRONMENT=Container
+      - AWS_ACCESS_KEY_ID=dummyaccess
+      - AWS_SECRET_ACCESS_KEY=dummysecret
+      - AWS_DEFAULT_REGION=us-east-1
+    ports:
+      - 5002:80
+
+  init:
+    build:
+      context: .
+      dockerfile: Dockerfile.init
+    environment:
+      - AWS_ACCESS_KEY_ID=dummyaccess
+      - AWS_SECRET_ACCESS_KEY=dummysecret
+      - AWS_DEFAULT_REGION=us-east-1
+    entrypoint: '/scripts/wait_for_it.sh localstack:4582 localstack:4569 -t 30 -- /scripts/init.sh'
+    depends_on: 
+      - localstack
+
+  localstack:
+    image: localstack/localstack:0.10.7
+    ports:
+      - 4582:4582
+      - 4569:4569
+    environment:
+      - SERVICES=cloudwatch,dynamodb
+      - DEFAULT_REGION=us-east-1
+      - DATA_DIR=/tmp/localstack/data
+      - DOCKER_HOST=unix:///var/run/docker.sock
+      - LAMBDA_EXECUTOR=docker
+    volumes:
+      - ./.localstack:/tmp/localstack
+      - /var/run/docker.sock:/var/run/docker.sock 
