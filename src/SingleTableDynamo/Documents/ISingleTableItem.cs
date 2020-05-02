@@ -2,8 +2,8 @@
 {
     public interface ISingleTableItem
     {
-        string HashKey { get; set; }
+        string HashKey { get; }
 
-        string SortKey { get; set; }
+        string SortKey { get; }
     }
 }

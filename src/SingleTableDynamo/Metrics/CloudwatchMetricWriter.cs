@@ -8,13 +8,13 @@ using System.Threading.Tasks;
 
 namespace SingleTableDynamo.Metrics
 {
-    public class CloudwatchMetricWriter : IMetricWriter
+    public class CloudWatchMetricWriter : IMetricWriter
     {
         private readonly IAmazonCloudWatch _client;
         private readonly List<MetricDatum> _metricData;
         private readonly string _namespace;
 
-        public CloudwatchMetricWriter(IAmazonCloudWatch client, IOptions<MetricWriterSettings> settings)
+        public CloudWatchMetricWriter(IAmazonCloudWatch client, IOptions<MetricWriterSettings> settings)
         {
             _client = client;
             _metricData = new List<MetricDatum>();

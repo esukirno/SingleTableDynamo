@@ -36,8 +36,11 @@ class Build : NukeBuild
     AbsolutePath SourceDirectory => RootDirectory / "src";
     AbsolutePath OutputDirectory => RootDirectory / "output";
 
+    [PathExecutable]
+    readonly Tool Aws;
+
     Target Clean => _ => _
-        //.Before(Restore)
+        .Before(Restore)
         .Executes(() =>
         {
             SourceDirectory.GlobDirectories("**/bin", "**/obj").ForEach(DeleteDirectory);
@@ -64,4 +67,17 @@ class Build : NukeBuild
                 .EnableNoRestore());
         });
 
+    Target CreateDemoStack => _ => _
+        .DependsOn(Compile)
+        .Executes(() =>
+        {
+            var file = $"{RootDirectory}/build/templates/DynamoDb.json";
+            Aws($"cloudformation create-stack --stack-name SingleTableDemo --template-body file://{file}");
+        });
+    Target DeleteDemoStack => _ => _
+        .DependsOn(Compile)
+        .Executes(() =>
+        {
+            Aws("cloudformation delete-stack --stack-name SingleTableDemo");
+        });
 }

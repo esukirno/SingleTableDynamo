@@ -77,7 +77,7 @@ namespace SingleTableDynamo
             {
                 PutRequest = new PutRequest
                 {
-                    Item = _dynamoDbContext.ToDocument(item).ToAttributeMap()
+                    Item = ConvertToAttributes(item)
                 }
             });
 
@@ -109,10 +109,16 @@ namespace SingleTableDynamo
             }
         }
 
+        private Dictionary<string, AttributeValue> ConvertToAttributes(T item)
+        {
+            var attributes = _dynamoDbContext.ToDocument<T>(item).ToAttributeMap();
+            attributes["HashKey"] = new AttributeValue(item.HashKey);
+            attributes["SortKey"] = new AttributeValue(item.SortKey);
+            return attributes;
+        }
+
         public async Task UpsertAsync(T item, IEnumerable<FilterSearchPredicate> conditionPredicates = null, CancellationToken cancellationToken = default)
         {
-            var attributes = _dynamoDbContext.ToDocument(item).ToAttributeMap();
-
             string filterExpression = null;
             var expressionAttributeNames = new Dictionary<string, string>();
             var expressionAttributeValues = new Dictionary<string, AttributeValue>();
@@ -131,7 +137,7 @@ namespace SingleTableDynamo
             var request = new PutItemRequest
             {
                 TableName = _tableName,
-                Item = attributes,
+                Item = ConvertToAttributes(item),
                 ExpressionAttributeNames = expressionAttributeNames,
                 ExpressionAttributeValues = expressionAttributeValues,
                 ConditionExpression = filterExpression
@@ -165,8 +171,6 @@ namespace SingleTableDynamo
 
         public async Task DeleteAsync(T item, IEnumerable<FilterSearchPredicate> conditionPredicates = null, CancellationToken cancellationToken = default)
         {
-            var attributes = _dynamoDbContext.ToDocument(item).ToAttributeMap();
-
             string filterExpression = null;
             var expressionAttributeNames = new Dictionary<string, string>();
             var expressionAttributeValues = new Dictionary<string, AttributeValue>();
