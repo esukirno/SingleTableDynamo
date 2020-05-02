@@ -43,7 +43,7 @@ namespace SingleTableDynamo
             SortKeyName = sortKeyName;
         }
 
-        public async Task<List<T>> QueryAsync(HashKeySearchPredicate hashKeySearchPredicate, SortKeySearchPredicate sortKeySearchPredicate, IEnumerable<FilterSearchPredicate> filterSearchPredicates, CancellationToken cancellationToken = default)
+        public async Task<List<T>> QueryAsync(HashKeySearchPredicate hashKeySearchPredicate, SortKeySearchPredicate sortKeySearchPredicate, IEnumerable<FilterSearchPredicate> filterSearchPredicates = null, CancellationToken cancellationToken = default)
         {
             var keyConditionExpression = hashKeySearchPredicate.ToFilterExpression() + " AND " + sortKeySearchPredicate.ToFilterExpression();
             string filterExpression = null;

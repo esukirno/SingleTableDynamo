@@ -19,6 +19,7 @@ namespace SingleTableDynamo.Tests
         public string SortKey => $"SortKey#{CreatedDate:yyyy-MM-dd}";
         public string SampleItemNumber { get; set; }
         public DateTime CreatedDate { get; set; }
+        public long TimeStamp { get; set; }
 
         public SampleItem() { }
 

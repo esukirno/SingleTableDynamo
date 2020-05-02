@@ -12,7 +12,7 @@ namespace SingleTableDynamo
 
         string SortKeyName { get; }
 
-        Task<List<T>> QueryAsync(HashKeySearchPredicate hashKeySearchPredicate, SortKeySearchPredicate sortKeySearchPredicate, IEnumerable<FilterSearchPredicate> filterSearchPredicates, CancellationToken cancellationToken = default);
+        Task<List<T>> QueryAsync(HashKeySearchPredicate hashKeySearchPredicate, SortKeySearchPredicate sortKeySearchPredicate, IEnumerable<FilterSearchPredicate> filterSearchPredicates = null, CancellationToken cancellationToken = default);
 
         Task BatchUpsertAsync(IEnumerable<T> items, CancellationToken cancellationToken = default);
 
