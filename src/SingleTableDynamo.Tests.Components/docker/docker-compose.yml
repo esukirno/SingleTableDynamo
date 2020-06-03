@@ -1,0 +1,29 @@
+﻿version: '3'
+
+services:  
+    init:
+        build: ./init
+        environment:
+            - AWS_ACCESS_KEY_ID=dummyaccess
+            - AWS_SECRET_ACCESS_KEY=dummysecret
+            - AWS_DEFAULT_REGION=us-east-1
+        volumes:
+            - ./init:/usr/app
+        
+        depends_on: 
+            - localstack
+
+    localstack:
+        image: localstack/localstack:0.11.2
+        ports:
+            - 4582:4582
+            - 4569:4569
+        environment:
+            - SERVICES=cloudwatch,dynamodb
+            - DEFAULT_REGION=us-east-1
+            - DATA_DIR=/tmp/localstack/data
+            - DOCKER_HOST=unix:///var/run/docker.sock
+            - LAMBDA_EXECUTOR=docker
+        volumes:
+            - ./.localstack:/tmp/localstack
+            - /var/run/docker.sock:/var/run/docker.sock
