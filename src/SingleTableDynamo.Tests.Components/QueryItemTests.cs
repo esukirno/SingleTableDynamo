@@ -19,10 +19,7 @@ namespace SingleTableDynamo.Tests.Components
         private const string _tableName = "test_db";
         private const string DynamoDbServiceUrl = "http://localhost:4569";
 
-        public readonly IDynamoDBSingleTableRepository<Item> Repository;
-
-        private List<Item> _result;
-        private List<Item> _items;
+        public readonly IDynamoDBSingleTableRepository<Staff> Repository;
 
         public QueryItemTests(DockerFixture fixture)
         {
@@ -36,22 +33,36 @@ namespace SingleTableDynamo.Tests.Components
 
             _dynamoDbClient = new AmazonDynamoDBClient(credentials, dynamoDbConfig);
             _dynamoDbContext = new DynamoDBContext(_dynamoDbClient);
-            Repository = new DynamoDBSingleTableRepository<Item>(_dynamoDbClient, _dynamoDbContext, new DoNothingMetricWriter(), _tableName);
+            Repository = new DynamoDBSingleTableRepository<Staff>(_dynamoDbClient, _dynamoDbContext, new DoNothingMetricWriter(), _tableName);
 
             fixture.InitOnce(() => new DockerFixtureOptions
             {
                 DockerComposeFiles = new[] { "../../../docker/docker-compose.yml" },
                 CustomUpTest = output => output.Any(o => o.Contains("App is ready")),
                 DockerComposeUpArgs = "--build",
-                StartupTimeoutSecs = 120
+                StartupTimeoutSecs = 500
             });
         }
 
         [Fact]
-        public async void Test()
+        public async void QueryAsync_UsingHashKeyAndSortKey_ReturnsCorrectItem()
         {
-            var result = await Repository.QueryAsync(HashKeySearchPredicate.EqualTo(Repository.HashKeyName, "Item#1"), SortKeySearchPredicate.EqualTo(Repository.SortKeyName, "Date#2020-01-01"));
-            Assert.Empty(result);
+            var actual = new Staff
+            {
+                Id = "1",
+                DOB = "2020-01-01"
+            };
+            await Repository.UpsertAsync(actual);
+
+            var result = await Repository.QueryAsync(HashKeySearchPredicate.EqualTo(Repository.HashKeyName, "Staff#1"), SortKeySearchPredicate.EqualTo(Repository.SortKeyName, "DOB#2020-01-01"));
+            Assert.NotEmpty(result);
+
+            var expected = result.FirstOrDefault();
+            Assert.NotNull(expected);
+            Assert.Equal(expected.Id, actual.Id);
+            Assert.Equal(expected.DOB, actual.DOB);
+            Assert.Equal(expected.HashKey, actual.HashKey);
+            Assert.Equal(expected.SortKey, actual.SortKey);
         }
     }
 }
