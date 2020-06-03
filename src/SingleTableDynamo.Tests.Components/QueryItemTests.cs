@@ -53,6 +53,11 @@ namespace SingleTableDynamo.Tests.Components
                     new KeySchemaElement(Repository.HashKeyName, KeyType.HASH),
                     new KeySchemaElement(Repository.SortKeyName, KeyType.RANGE)
                 },
+                AttributeDefinitions = new List<AttributeDefinition>
+                {
+                    new AttributeDefinition(Repository.HashKeyName, ScalarAttributeType.S),
+                    new AttributeDefinition(Repository.SortKeyName, ScalarAttributeType.S)
+                },
                 BillingMode = BillingMode.PAY_PER_REQUEST
             };
 
