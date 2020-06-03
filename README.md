@@ -1,3 +1,5 @@
+![.NET Core](https://github.com/esukirno/SingleTableDynamo/workflows/.NET%20Core/badge.svg)
+
 # Single Table DynamoDb
 
 If you are here, chances are that you have heard the concept from re:Invent DynamoDb Advanced Design Pattern talk.
