@@ -1,5 +1,3 @@
-using System;
-using System.Linq;
 using Nuke.Common;
 using Nuke.Common.Execution;
 using Nuke.Common.Git;
@@ -9,14 +7,13 @@ using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.GitVersion;
 using Nuke.Common.Utilities.Collections;
-using static Nuke.Common.EnvironmentInfo;
 using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.IO.PathConstruction;
 using static Nuke.Common.Tools.DotNet.DotNetTasks;
 
 [CheckBuildProjectConfigurations]
 [UnsetVisualStudioEnvironmentVariables]
-class Build : NukeBuild
+internal class Build : NukeBuild
 {
     /// Support plugins are available for:
     ///   - JetBrains ReSharper        https://nuke.build/resharper
@@ -24,37 +21,37 @@ class Build : NukeBuild
     ///   - Microsoft VisualStudio     https://nuke.build/visualstudio
     ///   - Microsoft VSCode           https://nuke.build/vscode
 
-    public static int Main () => Execute<Build>(x => x.Compile);
+    public static int Main() => Execute<Build>(x => x.Compile);
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
-    readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
+    private readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
 
-    [Solution] readonly Solution Solution;
-    [GitRepository] readonly GitRepository GitRepository;
-    [GitVersion] readonly GitVersion GitVersion;
+    [Solution] private readonly Solution Solution;
+    [GitRepository] private readonly GitRepository GitRepository;
+    [GitVersion] private readonly GitVersion GitVersion;
 
     AbsolutePath SourceDirectory => RootDirectory / "src";
     AbsolutePath OutputDirectory => RootDirectory / "output";
 
     [PathExecutable]
-    readonly Tool Aws;
+    private readonly Tool Aws;
 
-    Target Clean => _ => _
-        .Before(Restore)
-        .Executes(() =>
-        {
-            SourceDirectory.GlobDirectories("**/bin", "**/obj").ForEach(DeleteDirectory);
-            EnsureCleanDirectory(OutputDirectory);
-        });
+    private Target Clean => _ => _
+         .Before(Restore)
+         .Executes(() =>
+         {
+             SourceDirectory.GlobDirectories("**/bin", "**/obj").ForEach(DeleteDirectory);
+             EnsureCleanDirectory(OutputDirectory);
+         });
 
-    Target Restore => _ => _
-        .Executes(() =>
-        {
-            DotNetRestore(s => s
-                .SetProjectFile(Solution));
-        });
+    private Target Restore => _ => _
+         .Executes(() =>
+         {
+             DotNetRestore(s => s
+                 .SetProjectFile(Solution));
+         });
 
-    Target Compile => _ => _
+    private Target Compile => _ => _
         .DependsOn(Restore)
         .Executes(() =>
         {
@@ -67,17 +64,19 @@ class Build : NukeBuild
                 .EnableNoRestore());
         });
 
-    Target CreateDemoStack => _ => _
-        .DependsOn(Compile)
-        .Executes(() =>
-        {
-            var file = $"{RootDirectory}/build/templates/DynamoDb.json";
-            Aws($"cloudformation create-stack --stack-name SingleTableDemo --template-body file://{file}");
-        });
-    Target DeleteDemoStack => _ => _
-        .DependsOn(Compile)
-        .Executes(() =>
-        {
-            Aws("cloudformation delete-stack --stack-name SingleTableDemo");
-        });
+    public Target UnitTest => _ => _
+            .Description("Perform API unit tests")
+            .DependsOn(Compile)
+            .Executes(() => DotNetTest(
+                settings => settings
+                    .SetProjectFile(SourceDirectory + "/SingleTableDynamo.Tests")
+                    .EnableNoBuild()));
+
+    public Target ComponentTest => _ => _
+            .Description("Perform API unit tests")
+            .DependsOn(Compile)
+            .Executes(() => DotNetTest(
+                settings => settings
+                    .SetProjectFile(SourceDirectory + "/SingleTableDynamo.Tests.Components")
+                    .EnableNoBuild()));
 }

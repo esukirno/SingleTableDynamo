@@ -1,12 +1,12 @@
 ﻿using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.Model;
+using Polly;
 using SingleTableDynamo.Documents;
 using SingleTableDynamo.Exceptions;
 using SingleTableDynamo.Extensions;
 using SingleTableDynamo.Metrics;
 using SingleTableDynamo.Predicates;
-using Polly;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;

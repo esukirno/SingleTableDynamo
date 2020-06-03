@@ -1,6 +1,6 @@
-﻿using System;
+﻿using SingleTableDynamo.Metrics;
+using System;
 using System.Threading.Tasks;
-using SingleTableDynamo.Metrics;
 
 namespace SingleTableDynamo.Tests.Components.Utilities
 {
