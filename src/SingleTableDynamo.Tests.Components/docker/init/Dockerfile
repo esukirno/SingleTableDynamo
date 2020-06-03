@@ -10,4 +10,3 @@ RUN apk --no-cache update && \
 COPY . /usr/app
 RUN chmod +x /usr/app/wait_for_it.sh
 RUN chmod +x /usr/app/init.sh
-CMD ["/usr/app/init.sh"]

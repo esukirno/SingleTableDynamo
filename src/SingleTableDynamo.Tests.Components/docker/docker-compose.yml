@@ -9,7 +9,7 @@ services:
             - AWS_DEFAULT_REGION=us-east-1
         volumes:
             - ./init:/usr/app
-        
+        entrypoint: '/usr/app/wait_for_it.sh localstack:4582 localstack:4569 -t 30 -- /usr/app/init.sh'
         depends_on: 
             - localstack
 
