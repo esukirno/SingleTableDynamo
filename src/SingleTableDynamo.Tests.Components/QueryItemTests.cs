@@ -1,10 +1,12 @@
 ﻿using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
+using Amazon.DynamoDBv2.Model;
 using Amazon.Runtime;
 using DockerComposeFixture;
 using SingleTableDynamo.Predicates;
 using SingleTableDynamo.Tests.Components.Models;
 using SingleTableDynamo.Tests.Components.Utilities;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -12,7 +14,7 @@ using Xunit;
 namespace SingleTableDynamo.Tests.Components
 {
     [Collection("ComponentTests")]
-    public class QueryItemTests : IClassFixture<DockerFixture>
+    public class QueryItemTests : IClassFixture<DockerFixture>, IDisposable
     {
         private readonly IAmazonDynamoDB _dynamoDbClient;
         private readonly IDynamoDBContext _dynamoDbContext;
@@ -38,10 +40,23 @@ namespace SingleTableDynamo.Tests.Components
             fixture.InitOnce(() => new DockerFixtureOptions
             {
                 DockerComposeFiles = new[] { "../../../docker/docker-compose.yml" },
-                CustomUpTest = output => output.Any(o => o.Contains("App is ready")),
+                CustomUpTest = output => output.Any(o => o.Contains("Ready.")),
                 DockerComposeUpArgs = "--build",
                 StartupTimeoutSecs = 500
             });
+
+            var createTableRequest = new CreateTableRequest
+            {
+                TableName = _tableName,
+                KeySchema = new List<KeySchemaElement>
+                {
+                    new KeySchemaElement(Repository.HashKeyName, KeyType.HASH),
+                    new KeySchemaElement(Repository.SortKeyName, KeyType.RANGE)
+                },
+                BillingMode = BillingMode.PAY_PER_REQUEST
+            };
+
+            _dynamoDbClient.CreateTableAsync(createTableRequest).Wait();
         }
 
         [Fact]
@@ -52,6 +67,9 @@ namespace SingleTableDynamo.Tests.Components
                 Id = "1",
                 DOB = "2020-01-01"
             };
+
+            // run aws command here to setup dynamodb
+
             await Repository.UpsertAsync(actual);
 
             var result = await Repository.QueryAsync(HashKeySearchPredicate.EqualTo(Repository.HashKeyName, "Staff#1"), SortKeySearchPredicate.EqualTo(Repository.SortKeyName, "DOB#2020-01-01"));
@@ -63,6 +81,11 @@ namespace SingleTableDynamo.Tests.Components
             Assert.Equal(expected.DOB, actual.DOB);
             Assert.Equal(expected.HashKey, actual.HashKey);
             Assert.Equal(expected.SortKey, actual.SortKey);
+        }
+
+        public async void Dispose()
+        {
+            await _dynamoDbClient.DeleteTableAsync(_tableName);
         }
     }
 }

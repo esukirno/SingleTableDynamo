@@ -1,18 +1,6 @@
 ﻿version: '3'
 
 services:  
-    init:
-        build: ./init
-        environment:
-            - AWS_ACCESS_KEY_ID=dummyaccess
-            - AWS_SECRET_ACCESS_KEY=dummysecret
-            - AWS_DEFAULT_REGION=us-east-1
-        volumes:
-            - ./init:/usr/app
-        entrypoint: '/usr/app/wait_for_it.sh localstack:4582 localstack:4569 -t 30 -- /usr/app/init.sh'
-        depends_on: 
-            - localstack
-
     localstack:
         image: localstack/localstack-light:0.11.2
         ports:
